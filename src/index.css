@@ -1,0 +1,86 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --cream: #FFF8F0;
+  --orange: #FF8C42;
+  --orange-d: #E67A2D;
+  --brown: #7A4F2D;
+  --brown-l: #A67C52;
+  --green: #6DB56A;
+  --blue: #6BA3BE;
+  --red: #E85D4A;
+  --text: #2D1F14;
+  --text-s: #7A6855;
+  --surface: #F5F0EB;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cream: #1A1410;
+    --orange: #FF9A5C;
+    --orange-d: #FF8C42;
+    --brown: #D4A574;
+    --brown-l: #B8956A;
+    --green: #7DC87A;
+    --blue: #7BB8D4;
+    --red: #FF7060;
+    --text: #F0E8DE;
+    --text-s: #C4A882;
+    --surface: #2A2018;
+  }
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'Nunito', system-ui, sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+  overscroll-behavior: none;
+}
+
+#root {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: var(--cream);
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+@keyframes slideUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+@keyframes pop { 0%,100% { transform:scale(1); } 40% { transform:scale(0.94); } }
+@keyframes modalIn { from { opacity:0; transform:translateY(100%); } to { opacity:1; transform:translateY(0); } }
+
+.fade-in { animation: fadeIn 0.28s ease forwards; }
+.slide-up { animation: slideUp 0.32s ease forwards; }
+.modal-in { animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.btn-press:active { animation: pop 0.15s ease; }
+
+.card {
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 2px 10px rgba(122,79,45,0.07);
+}
+
+@media (prefers-color-scheme: dark) {
+  .card { background: #2A2018; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+}
+
+input, textarea, select, button {
+  font-family: 'Nunito', system-ui, sans-serif;
+}
+
+input:focus, textarea:focus, select:focus { outline: none; }
+
+.pb-nav { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
