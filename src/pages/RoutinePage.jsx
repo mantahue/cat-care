@@ -5,9 +5,10 @@ import { supabase, isConfigured } from '../lib/supabase'
 import { format, differenceInDays, parseISO } from 'date-fns'
 
 const FREQ_THRESHOLD = { yearly: 365, monthly: 30, weekly: 7, daily: 1 }
-const FREQ_LABEL = { yearly: '每年', monthly: '每月', weekly: '每週', daily: '每日' }
+const FREQ_LABEL = { daily: '每日', weekly: '每週', monthly: '每月', yearly: '每年' }
 const FREQ_COLOR = { yearly: '#FFF0E0', monthly: '#E8F3F8', weekly: '#F0E8FF', daily: '#E8F5E8' }
 const DEFAULT_ICONS = { '年度健康檢查': '🏥', '剪指甲': '✂️', '清耳朵': '👂', '驅蟲': '🐛', '餵保健品': '💊' }
+const EMOJI_OPTIONS = ['💊','🏥','✂️','👂','🐛','🛁','🦷','💉','🩺','🧴','🥩','🐟','🌿','⚖️','🚿','🧹','❤️','⭐']
 
 const DEMO_TASKS = [
   { id: '1', task_name: '年度健康檢查', frequency: 'yearly', last_done: '2025-11-03', notes: '', icon: '🏥', next_due: null },
@@ -16,8 +17,6 @@ const DEMO_TASKS = [
   { id: '4', task_name: '驅蟲', frequency: 'monthly', last_done: '2026-02-09', notes: '', icon: '🐛', next_due: null },
   { id: '5', task_name: '餵保健品（魚油）', frequency: 'daily', last_done: format(new Date(), 'yyyy-MM-dd'), notes: '每日1顆，混入濕食', icon: '💊', next_due: null },
 ]
-
-const EMOJI_OPTIONS = ['💊','🏥','✂️','👂','🐛','🛁','🦷','💉','🩺','🧴','🥩','🐟','🌿','⚖️','🚿','🧹','❤️','⭐']
 
 function getStatus(task) {
   if (!task.last_done) return { label: '未紀錄', color: '#E85D4A', bg: '#FDECEA' }
@@ -29,6 +28,12 @@ function getStatus(task) {
   if (days >= th) return { label: '需要做了', color: '#E85D4A', bg: '#FDECEA' }
   if (days >= th * 0.8) return { label: '快到了', color: '#C0682A', bg: '#FFF0E0' }
   return { label: '正常', color: '#3A7A37', bg: '#E8F5E8' }
+}
+
+const inputStyle = {
+  width: '100%', padding: '10px 12px', borderRadius: 12,
+  border: '1.5px solid var(--surface)', background: 'var(--cream)',
+  fontSize: 15, color: 'var(--text)',
 }
 
 export default function RoutinePage() {
@@ -50,12 +55,10 @@ export default function RoutinePage() {
     setForm({ task_name: '', frequency: 'monthly', notes: '', icon: '📌', next_due: '' })
     setAddModal(true)
   }
-
   const openEdit = (task) => {
     setForm({ task_name: task.task_name, frequency: task.frequency, notes: task.notes || '', icon: task.icon || '📌', next_due: task.next_due || '' })
     setEditModal(task)
   }
-
   const saveNew = async () => {
     if (!form.task_name.trim()) return
     const entry = { task_name: form.task_name, frequency: form.frequency, notes: form.notes, icon: form.icon, next_due: form.next_due || null, last_done: null }
@@ -63,7 +66,6 @@ export default function RoutinePage() {
     else setTasks(t => [...t, { ...entry, id: Date.now().toString() }])
     setAddModal(false)
   }
-
   const saveEdit = async () => {
     if (!form.task_name.trim()) return
     const updates = { task_name: form.task_name, frequency: form.frequency, notes: form.notes, icon: form.icon, next_due: form.next_due || null }
@@ -71,12 +73,10 @@ export default function RoutinePage() {
     else setTasks(t => t.map(x => x.id === editModal.id ? { ...x, ...updates } : x))
     setEditModal(null)
   }
-
   const del = async (id) => {
     if (configured) await supabase.from('routine_tasks').delete().eq('id', id)
     setTasks(t => t.filter(x => x.id !== id))
   }
-
   const markDone = async (task) => {
     const today = format(new Date(), 'yyyy-MM-dd')
     if (configured) { await supabase.from('routine_tasks').update({ last_done: today }).eq('id', task.id); load() }
@@ -92,12 +92,16 @@ export default function RoutinePage() {
   ]
 
   const TaskForm = ({ onSave }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div>
-        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-s)', marginBottom: 6 }}>任務名稱 *</div>
-        <input value={form.task_name} onChange={e => setForm(f => ({ ...f, task_name: e.target.value }))}
+        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-s)', marginBottom: 8 }}>任務名稱 *</div>
+        <input
+          defaultValue={form.task_name}
+          onBlur={e => setForm(f => ({ ...f, task_name: e.target.value }))}
           placeholder="例如：餵保健品（關節靈活）"
-          style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: '1.5px solid var(--surface)', background: 'var(--cream)', fontSize: 13, color: 'var(--text)' }} />
+          style={inputStyle}
+          autoComplete="off"
+        />
       </div>
       <div>
         <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-s)', marginBottom: 8 }}>重複頻率</div>
@@ -114,28 +118,41 @@ export default function RoutinePage() {
         </div>
       </div>
       <div>
-        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-s)', marginBottom: 6 }}>下次預定日期（選填）</div>
-        <input type="date" value={form.next_due} onChange={e => setForm(f => ({ ...f, next_due: e.target.value }))}
-          style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: '1.5px solid var(--surface)', background: 'var(--cream)', fontSize: 13, color: 'var(--text)' }} />
+        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-s)', marginBottom: 8 }}>下次預定日期（選填）</div>
+        <input
+          type="date"
+          value={form.next_due}
+          onChange={e => setForm(f => ({ ...f, next_due: e.target.value }))}
+          style={{ ...inputStyle, fontSize: 14 }}
+        />
+        {form.next_due && (
+          <div style={{ fontSize: 12, color: 'var(--orange-d)', marginTop: 6, fontWeight: 600 }}>
+            📅 已選擇：{form.next_due.replace(/-/g, '/')}
+          </div>
+        )}
       </div>
       <div>
         <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-s)', marginBottom: 8 }}>圖示</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {EMOJI_OPTIONS.map(e => (
             <button key={e} onClick={() => setForm(f => ({ ...f, icon: e }))} style={{
-              width: 36, height: 36, borderRadius: 8, border: '2px solid',
+              width: 38, height: 38, borderRadius: 8, border: '2px solid',
               borderColor: form.icon === e ? 'var(--orange-d)' : 'transparent',
               background: form.icon === e ? '#FFF0E0' : 'var(--surface)',
-              fontSize: 18, cursor: 'pointer',
+              fontSize: 20, cursor: 'pointer',
             }}>{e}</button>
           ))}
         </div>
       </div>
       <div>
-        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-s)', marginBottom: 6 }}>備註（選填）</div>
-        <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-s)', marginBottom: 8 }}>備註（選填）</div>
+        <input
+          defaultValue={form.notes}
+          onBlur={e => setForm(f => ({ ...f, notes: e.target.value }))}
           placeholder="例如：每日1顆，混入濕食"
-          style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: '1.5px solid var(--surface)', background: 'var(--cream)', fontSize: 13, color: 'var(--text)' }} />
+          style={inputStyle}
+          autoComplete="off"
+        />
       </div>
       <button onClick={onSave} style={{ width: '100%', padding: 14, borderRadius: 14, background: 'var(--orange-d)', color: 'white', border: 'none', fontSize: 15, fontWeight: 800, cursor: 'pointer' }}>儲存</button>
     </div>
@@ -148,11 +165,9 @@ export default function RoutinePage() {
           <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', margin: 0 }}>📋 例行公事</h1>
           <p style={{ fontSize: 12, color: 'var(--brown-l)', margin: '2px 0 0' }}>點「完成」記錄時間</p>
         </div>
-        <button onClick={openAdd} style={{
-          background: 'var(--orange-d)', color: 'white', border: 'none', borderRadius: 12,
-          padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 4,
-        }}><Plus size={14} /> 新增</button>
+        <button onClick={openAdd} style={{ background: 'var(--orange-d)', color: 'white', border: 'none', borderRadius: 12, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Plus size={14} /> 新增
+        </button>
       </div>
 
       {groups.map(({ freq, label, emoji }) => {
@@ -170,9 +185,7 @@ export default function RoutinePage() {
               return (
                 <div key={task.id} style={{ padding: '10px 0', borderBottom: '0.5px solid var(--surface)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 12, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
-                      {icon}
-                    </div>
+                    <div style={{ width: 40, height: 40, borderRadius: 12, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>{icon}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>{task.task_name}</div>
                       <div style={{ fontSize: 11, color: 'var(--brown-l)' }}>
@@ -188,7 +201,7 @@ export default function RoutinePage() {
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>
                       <span style={{ background: status.bg, color: status.color, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 999 }}>{status.label}</span>
                       <div style={{ display: 'flex', gap: 4 }}>
-                        <button onClick={() => openEdit(task)} style={{ padding: '4px 7px', borderRadius: 8, border: 'none', background: 'var(--surface)', fontSize: 11, cursor: 'pointer', color: 'var(--text-s)', display: 'flex', alignItems: 'center' }}>
+                        <button onClick={() => openEdit(task)} style={{ padding: '4px 7px', borderRadius: 8, border: 'none', background: 'var(--surface)', cursor: 'pointer', color: 'var(--text-s)', display: 'flex', alignItems: 'center' }}>
                           <Edit2 size={11} />
                         </button>
                         {confirming === task.id ? (
@@ -225,7 +238,6 @@ export default function RoutinePage() {
       <Modal open={addModal} onClose={() => setAddModal(false)} title="➕ 新增任務">
         <TaskForm onSave={saveNew} />
       </Modal>
-
       <Modal open={!!editModal} onClose={() => setEditModal(null)} title="✏️ 編輯任務">
         <TaskForm onSave={saveEdit} />
       </Modal>
