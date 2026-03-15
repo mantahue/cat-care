@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Home, Stethoscope, UtensilsCrossed, ClipboardList, Search, Settings } from 'lucide-react'
-import { supabase, isConfigured } from './lib/supabase'
 import { useCatProfile } from './hooks/useSupabase'
+import doupiAvatar from './assets/doupiAvatar'
 
 import HomePage from './pages/HomePage'
 import MedicalPage from './pages/MedicalPage'
@@ -27,21 +27,16 @@ export default function App() {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 16px 0',
-        flexShrink: 0,
+        padding: '12px 16px 0', flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
             width: 38, height: 38, borderRadius: '50%',
-            background: 'var(--orange)', overflow: 'hidden',
-            border: '2.5px solid white', boxShadow: '0 2px 8px rgba(230,122,45,0.25)',
-            flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer',
+            overflow: 'hidden', border: '2.5px solid white',
+            boxShadow: '0 2px 8px rgba(230,122,45,0.25)',
+            flexShrink: 0, cursor: 'pointer',
           }} onClick={() => setTab('settings')}>
-            {profile.avatar_url
-              ? <img src={profile.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <span style={{ fontSize: 20 }}>🐱</span>
-            }
+            <img src={doupiAvatar} alt="豆皮" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div>
             <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{profile.name}</div>
@@ -74,22 +69,17 @@ export default function App() {
 
       <nav style={{
         position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: 430,
-        background: 'white',
+        width: '100%', maxWidth: 430, background: 'white',
         borderTop: '0.5px solid rgba(122,79,45,0.12)',
-        display: 'flex',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        zIndex: 100,
+        display: 'flex', paddingBottom: 'env(safe-area-inset-bottom, 0px)', zIndex: 100,
       }}>
         {TABS.map(({ id, label, Icon }) => {
           const on = tab === id
           return (
             <button key={id} onClick={() => setTab(id)} style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: 2, padding: '10px 0 8px', border: 'none',
-              background: 'none', cursor: 'pointer',
-              color: on ? 'var(--orange-d)' : 'var(--text-s)',
-              transition: 'color .15s',
+              gap: 2, padding: '10px 0 8px', border: 'none', background: 'none',
+              cursor: 'pointer', color: on ? 'var(--orange-d)' : 'var(--text-s)', transition: 'color .15s',
             }}>
               <Icon size={20} strokeWidth={on ? 2.5 : 1.8} />
               <span style={{ fontSize: 10, fontWeight: on ? 800 : 600 }}>{label}</span>
